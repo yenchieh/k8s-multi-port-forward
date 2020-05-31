@@ -1,4 +1,4 @@
-# Connect multiple ```kubectl port-forward ```
+# Connect multiple ```kubectl port-forward svc```
 
 ### Usage
 * Add/Remove Service list under main func
