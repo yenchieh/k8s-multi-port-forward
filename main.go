@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os/exec"
+	"time"
 )
 
 type Service struct {
@@ -23,6 +24,14 @@ func (s *Service) ToString() []string {
 
 func main() {
 	services := []Service{
+		{
+			Name: "gcs-uploader",
+			Port: "10004:10004",
+		},
+		{
+			Name: "komiic-service",
+			Port: "10002:10002",
+		},
 		{
 			Name: "mongo",
 			Port: "27017:27017",
@@ -53,6 +62,7 @@ func main() {
 			}
 			done <- fmt.Sprintf("[%s] Closed", v.Name)
 		}()
+		time.Sleep(3 * time.Second)
 	}
 	log.Printf("\nDone: %s\n", <-done)
 
