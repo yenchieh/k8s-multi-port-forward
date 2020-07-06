@@ -62,7 +62,7 @@ func main() {
 			}
 			done <- fmt.Sprintf("[%s] Closed", v.Name)
 		}()
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 	log.Printf("\nDone: %s\n", <-done)
 
