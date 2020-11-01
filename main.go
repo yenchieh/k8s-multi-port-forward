@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -18,52 +19,74 @@ func (s *Service) ToString() []string {
 	return []string{
 		"port-forward",
 		"svc/" + s.Name,
-		s.Port,
+		s.Port+":"+s.Port,
 	}
 }
 
 func main() {
 	services := []Service{
 		{
-			Name: "gcs-uploader",
-			Port: "10004:10004",
-		},
-		{
-			Name: "komiic-service",
-			Port: "10002:10002",
-		},
-		{
 			Name: "mongo",
-			Port: "27017:27017",
+			Port: "27017",
 		},
 		{
 			Name: "postgres",
-			Port: "5432:5432",
+			Port: "5432",
 		},
 		{
 			Name: "rabbitmq",
-			Port: "5672:5672",
+			Port: "5672",
 		},
 		{
 			Name: "redis",
-			Port: "6379:6379",
+			Port: "6379",
+		},
+		{
+			Name: "account-service",
+			Port: "10003",
+		},
+		{
+			Name: "gcs-uploader",
+			Port: "10004",
+		},
+		{
+			Name: "komiic-feedback",
+			Port: "10005",
+		},
+		{
+			Name: "komiic-service",
+			Port: "10002",
 		},
 	}
+	defer func() {
+		for _, s := range services {
+			fmt.Printf("\nClosing: %s\n", s.Port)
+			cmd := exec.Command("fuser", "-k", fmt.Sprintf("%s/tcp", s.Port))
+			var out bytes.Buffer
+			cmd.Stdout = &out
+			err := cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
+
 	done := make(chan string)
 	for _, s := range services {
 		v := s
 		go func() {
 			cmd, err := runCmd(v)
 			if err != nil {
-				log.Fatal(err)
+				done <- fmt.Sprintf("[%s] Error %+v", v.Name, err)
 			}
 			if err := cmd.Wait(); err != nil {
-				log.Fatal(err)
+				done <- fmt.Sprintf("[%s] Error %+v", v.Name, err)
 			}
 			done <- fmt.Sprintf("[%s] Closed", v.Name)
 		}()
 		time.Sleep(1 * time.Second)
 	}
+
 	log.Printf("\nDone: %s\n", <-done)
 
 }
